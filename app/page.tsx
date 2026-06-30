@@ -1,37 +1,76 @@
 "use client";
 
+// Home page — stats, filters, item grid, analytics section at the bottom.
 import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
+import { useSearch } from "@/lib/search-context";
 import { computeStats, formatCurrency } from "@/lib/compute";
 import {
   Item,
   ItemStatus,
-  Platform,
+  KnownPlatform,
   PLATFORMS,
   PLATFORM_LABELS,
 } from "@/lib/types";
 import StatCard from "@/components/StatCard";
 import ItemCard from "@/components/ItemCard";
-import AddItemModal from "@/components/AddItemModal";
+import ItemFormModal from "@/components/ItemFormModal";
 import MarkSoldModal from "@/components/MarkSoldModal";
+import AnalyticsSection from "@/components/AnalyticsSection";
 import {
   DollarSign,
   TrendingUp,
   Package,
   CheckCircle2,
-  Search,
   Plus,
   PackageOpen,
+  ChevronDown,
 } from "lucide-react";
 
+function FilterSelect<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as T)}
+        aria-label={label}
+        className="appearance-none rounded-pill border border-rackd-charcoal/10 bg-white py-2 pl-4 pr-9 text-sm font-medium text-rackd-charcoal outline-none transition-colors hover:border-rackd-charcoal/20 focus:border-rackd-mint-dark focus:ring-2 focus:ring-rackd-mint/30"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        size={14}
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-rackd-charcoal/40"
+      />
+    </div>
+  );
+}
+
 export default function DashboardPage() {
-  const { items } = useStore();
+  const { items, addItem, updateItem } = useStore();
+  const { query } = useSearch();
   const [addOpen, setAddOpen] = useState(false);
+  const [editItem, setEditItem] = useState<Item | null>(null);
   const [soldItem, setSoldItem] = useState<Item | null>(null);
 
-  const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ItemStatus | "all">("all");
-  const [platformFilter, setPlatformFilter] = useState<Platform | "all">("all");
+  const [platformFilter, setPlatformFilter] = useState<
+    KnownPlatform | "all" | "other"
+  >("all");
 
   const stats = useMemo(() => computeStats(items), [items]);
 
@@ -45,11 +84,14 @@ export default function DashboardPage() {
     return items.filter((item) => {
       if (statusFilter !== "all" && item.status !== statusFilter) return false;
       if (brandFilter !== "all" && item.brand !== brandFilter) return false;
-      if (
+      if (platformFilter === "other") {
+        if (!item.listings.some((l) => l.platform === "custom")) return false;
+      } else if (
         platformFilter !== "all" &&
         !item.listings.some((l) => l.platform === platformFilter)
-      )
+      ) {
         return false;
+      }
       if (query) {
         const q = query.toLowerCase();
         if (
@@ -62,30 +104,11 @@ export default function DashboardPage() {
     });
   }, [items, statusFilter, brandFilter, platformFilter, query]);
 
-  const selectClass =
-    "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-brand-500";
-
   return (
-    <div className="px-5 py-6 md:px-8 md:py-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-sm text-slate-500">
-            Your reseller inventory across every platform.
-          </p>
-        </div>
-        <button
-          onClick={() => setAddOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700"
-        >
-          <Plus size={18} />
-          Add Item
-        </button>
-      </header>
-
-      <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mx-auto max-w-7xl px-5 pb-20 pt-8 md:px-8">
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Inventory Value"
+          label="Total Inventory Value"
           value={formatCurrency(stats.inventoryValue)}
           icon={DollarSign}
           accent
@@ -107,77 +130,94 @@ export default function DashboardPage() {
         />
       </section>
 
-      <section className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="relative flex-1">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by title or brand…"
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-3 text-sm outline-none focus:border-brand-500"
-          />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <select
-            className={selectClass}
-            value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as ItemStatus | "all")
-            }
+      <section id="inventory" className="mt-14 scroll-mt-24">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-2xl font-bold tracking-tight text-rackd-charcoal">
+            Inventory
+          </h2>
+          <button
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rackd-mint px-5 py-3 text-sm font-semibold text-rackd-charcoal shadow-soft transition-colors hover:bg-rackd-mint-dark"
           >
-            <option value="all">All statuses</option>
-            <option value="active">Active</option>
-            <option value="sold">Sold</option>
-          </select>
-          <select
-            className={selectClass}
+            <Plus size={18} />
+            Add Item
+          </button>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          <FilterSelect
+            label="Brand"
             value={brandFilter}
-            onChange={(e) => setBrandFilter(e.target.value)}
-          >
-            <option value="all">All brands</option>
-            {brands.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-          <select
-            className={selectClass}
+            onChange={setBrandFilter}
+            options={[
+              { value: "all", label: "All brands" },
+              ...brands.map((b) => ({ value: b, label: b })),
+            ]}
+          />
+          <FilterSelect
+            label="Status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "all", label: "All statuses" },
+              { value: "active", label: "Active" },
+              { value: "sold", label: "Sold" },
+            ]}
+          />
+          <FilterSelect
+            label="Platform"
             value={platformFilter}
-            onChange={(e) =>
-              setPlatformFilter(e.target.value as Platform | "all")
-            }
-          >
-            <option value="all">All platforms</option>
-            {PLATFORMS.map((p) => (
-              <option key={p} value={p}>
-                {PLATFORM_LABELS[p]}
-              </option>
-            ))}
-          </select>
+            onChange={setPlatformFilter}
+            options={[
+              { value: "all", label: "All platforms" },
+              ...PLATFORMS.map((p) => ({
+                value: p,
+                label: PLATFORM_LABELS[p],
+              })),
+              { value: "other", label: "Other platforms" },
+            ]}
+          />
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="mt-10 flex flex-col items-center justify-center rounded-card border border-dashed border-rackd-charcoal/15 bg-white py-20 text-center">
+            <PackageOpen size={44} className="text-rackd-charcoal/20" />
+            <p className="mt-4 font-medium text-rackd-charcoal">No items found</p>
+            <p className="text-sm text-rackd-charcoal/50">
+              Adjust filters or add your first piece.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filtered.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onMarkSold={setSoldItem}
+                onEdit={setEditItem}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      {filtered.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center">
-          <PackageOpen size={40} className="text-slate-300" />
-          <p className="mt-3 font-medium text-slate-700">No items found</p>
-          <p className="text-sm text-slate-400">
-            Try adjusting your filters, or add your first item.
-          </p>
-        </div>
-      ) : (
-        <section className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((item) => (
-            <ItemCard key={item.id} item={item} onMarkSold={setSoldItem} />
-          ))}
-        </section>
-      )}
+      <AnalyticsSection items={items} />
 
-      <AddItemModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <ItemFormModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        mode="add"
+        onSave={addItem}
+      />
+      <ItemFormModal
+        open={!!editItem}
+        onClose={() => setEditItem(null)}
+        mode="edit"
+        item={editItem}
+        onSave={(input) => {
+          if (editItem) updateItem(editItem.id, input);
+        }}
+      />
       <MarkSoldModal item={soldItem} onClose={() => setSoldItem(null)} />
     </div>
   );

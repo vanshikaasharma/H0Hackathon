@@ -1,3 +1,9 @@
+# Private notes & planning (local only — not for the public repo)
+PLAN.md
+FlipHQ-Plan-Email.txt
+docs/
+.gitignore.local.bak
+
 # dependencies
 /node_modules
 /.pnp

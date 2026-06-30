@@ -7,7 +7,6 @@ function daysAgo(n: number): string {
 }
 
 // Seed data so every screen looks full during the demo.
-// This stands in for the Aurora PostgreSQL rows until the backend is wired up.
 export const SEED_ITEMS: Item[] = [
   {
     id: "itm_001",
@@ -21,11 +20,23 @@ export const SEED_ITEMS: Item[] = [
     photoUrl:
       "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600&q=80",
     status: "active",
-    createdAt: daysAgo(42),
+    createdAt: daysAgo(72),
     listings: [
-      { platform: "depop", isActive: true },
-      { platform: "ebay", isActive: true },
-      { platform: "poshmark", isActive: true },
+      {
+        platform: "depop",
+        isActive: true,
+        listingUrl: "https://www.depop.com/products/example-carhartt-jacket",
+      },
+      {
+        platform: "ebay",
+        isActive: true,
+        listingUrl: "https://www.ebay.com/itm/123456789012",
+      },
+      {
+        platform: "poshmark",
+        isActive: true,
+        listingUrl: "https://poshmark.com/listing/carhartt-jacket-example",
+      },
     ],
   },
   {
@@ -42,8 +53,16 @@ export const SEED_ITEMS: Item[] = [
     status: "active",
     createdAt: daysAgo(9),
     listings: [
-      { platform: "depop", isActive: true },
-      { platform: "vinted", isActive: true },
+      {
+        platform: "depop",
+        isActive: true,
+        listingUrl: "https://www.depop.com/products/example-nuptse",
+      },
+      {
+        platform: "vinted",
+        isActive: true,
+        listingUrl: "https://www.vinted.com/items/example-nuptse",
+      },
     ],
   },
   {
@@ -60,11 +79,28 @@ export const SEED_ITEMS: Item[] = [
     status: "sold",
     createdAt: daysAgo(20),
     listings: [
-      { platform: "depop", isActive: true },
-      { platform: "poshmark", isActive: true },
-      { platform: "vinted", isActive: false },
+      {
+        platform: "depop",
+        isActive: true,
+        listingUrl: "https://www.depop.com/products/example-levis-501",
+      },
+      {
+        platform: "poshmark",
+        isActive: true,
+        listingUrl: "https://poshmark.com/listing/levis-501-example",
+      },
+      {
+        platform: "vinted",
+        isActive: false,
+        listingUrl: "https://www.vinted.com/items/example-levis",
+      },
     ],
-    sale: { platformSold: "vinted", salePrice: 58, soldAt: daysAgo(3) },
+    sale: {
+      listingKey: "vinted",
+      platformSold: "vinted",
+      salePrice: 58,
+      soldAt: daysAgo(3),
+    },
   },
   {
     id: "itm_004",
@@ -83,7 +119,12 @@ export const SEED_ITEMS: Item[] = [
       { platform: "depop", isActive: false },
       { platform: "ebay", isActive: false },
     ],
-    sale: { platformSold: "depop", salePrice: 82, soldAt: daysAgo(1) },
+    sale: {
+      listingKey: "depop",
+      platformSold: "depop",
+      salePrice: 82,
+      soldAt: daysAgo(1),
+    },
   },
   {
     id: "itm_005",
@@ -97,10 +138,18 @@ export const SEED_ITEMS: Item[] = [
     photoUrl:
       "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&q=80",
     status: "active",
-    createdAt: daysAgo(58),
+    createdAt: daysAgo(65),
     listings: [
-      { platform: "poshmark", isActive: true },
-      { platform: "ebay", isActive: true },
+      {
+        platform: "poshmark",
+        isActive: true,
+        listingUrl: "https://poshmark.com/listing/patagonia-fleece",
+      },
+      {
+        platform: "ebay",
+        isActive: true,
+        listingUrl: "https://www.ebay.com/itm/987654321098",
+      },
     ],
   },
   {
@@ -120,6 +169,12 @@ export const SEED_ITEMS: Item[] = [
       { platform: "poshmark", isActive: true },
       { platform: "depop", isActive: true },
       { platform: "vinted", isActive: true },
+      {
+        platform: "custom",
+        customPlatformName: "Grailed",
+        isActive: true,
+        listingUrl: "https://www.grailed.com/listings/example-lululemon",
+      },
     ],
   },
   {
@@ -154,10 +209,27 @@ export const SEED_ITEMS: Item[] = [
     status: "sold",
     createdAt: daysAgo(26),
     listings: [
-      { platform: "poshmark", isActive: true },
-      { platform: "ebay", isActive: true },
-      { platform: "vinted", isActive: false },
+      {
+        platform: "poshmark",
+        isActive: true,
+        listingUrl: "https://poshmark.com/listing/zara-overcoat",
+      },
+      {
+        platform: "ebay",
+        isActive: true,
+        listingUrl: "https://www.ebay.com/itm/555666777888",
+      },
+      {
+        platform: "vinted",
+        isActive: false,
+        listingUrl: "https://www.vinted.com/items/zara-coat",
+      },
     ],
-    sale: { platformSold: "poshmark", salePrice: 68, soldAt: daysAgo(6) },
+    sale: {
+      listingKey: "poshmark",
+      platformSold: "poshmark",
+      salePrice: 68,
+      soldAt: daysAgo(6),
+    },
   },
 ];

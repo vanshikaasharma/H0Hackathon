@@ -1,26 +1,20 @@
-import { Platform, PLATFORM_LABELS } from "@/lib/types";
+import { Listing } from "@/lib/types";
+import { getListingLabel } from "@/lib/listing-utils";
+import { platformPillClasses } from "@/lib/platform-styles";
 
-const STYLES: Record<Platform, string> = {
-  depop: "bg-red-50 text-red-600",
-  poshmark: "bg-pink-50 text-pink-600",
-  vinted: "bg-teal-50 text-teal-600",
-  ebay: "bg-blue-50 text-blue-600",
-};
-
+/** Read-only platform chip — strikethrough when listing is inactive (sold/delisted). */
 export default function PlatformTag({
-  platform,
+  listing,
   muted,
 }: {
-  platform: Platform;
+  listing: Listing;
   muted?: boolean;
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-        muted ? "bg-slate-100 text-slate-400 line-through" : STYLES[platform]
-      }`}
+      className={`inline-flex items-center rounded-pill px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${platformPillClasses(listing, { muted })}`}
     >
-      {PLATFORM_LABELS[platform]}
+      {getListingLabel(listing)}
     </span>
   );
 }

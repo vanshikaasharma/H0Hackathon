@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import { panelCardClass } from "@/lib/ui-styles";
 
 interface StatCardProps {
   label: string;
@@ -14,18 +15,24 @@ export default function StatCard({
   accent,
 }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
+    <div
+      className={`p-6 transition-shadow hover:shadow-soft ${panelCardClass} ${
+        accent ? "border-rackd-mint/60 bg-gradient-to-br from-white to-rackd-mint/20" : ""
+      }`}
+    >
+      <div className="flex items-start justify-between">
+        <p className="text-sm font-medium text-rackd-charcoal/60">{label}</p>
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-            accent ? "bg-brand-600 text-white" : "bg-slate-100 text-slate-500"
+          className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+            accent
+              ? "bg-rackd-mint text-rackd-charcoal"
+              : "bg-rackd-charcoal/5 text-rackd-charcoal/70"
           }`}
         >
-          <Icon size={18} />
+          <Icon size={20} strokeWidth={1.75} />
         </div>
       </div>
-      <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+      <p className="mt-3 text-2xl font-bold tracking-tight text-rackd-charcoal sm:mt-4 sm:text-3xl md:text-4xl">
         {value}
       </p>
     </div>

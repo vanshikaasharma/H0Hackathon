@@ -1,4 +1,7 @@
-import { Item, Platform, PLATFORM_LABELS } from "./types";
+import { getListingLabel } from "./listing-utils";
+import { Item, Listing } from "./types";
+
+// Stats helpers — kept separate from React so they're easy to test.
 
 export function profit(item: Item): number {
   if (item.status !== "sold" || !item.sale) return 0;
@@ -28,10 +31,14 @@ export function computeStats(items: Item[]): DashboardStats {
   );
 }
 
-// Platforms an item is STILL actively listed on (used for the delist warning).
-export function platformsNeedingDelist(item: Item): Platform[] {
+// Listings still active after a sale — includes listingUrl for delist links.
+export function listingsNeedingDelist(item: Item): Listing[] {
   if (item.status !== "sold") return [];
-  return item.listings.filter((l) => l.isActive).map((l) => l.platform);
+  return item.listings.filter((l) => l.isActive);
+}
+
+export function countItemsNeedingDelist(items: Item[]): number {
+  return items.filter((i) => listingsNeedingDelist(i).length > 0).length;
 }
 
 export interface BrandStat {
@@ -68,14 +75,73 @@ export function staleInventory(items: Item[]): Item[] {
     .sort((a, b) => daysListed(b) - daysListed(a));
 }
 
+export function staleInventoryOverDays(
+  items: Item[],
+  minDays = 60
+): Item[] {
+  return staleInventory(items).filter((i) => daysListed(i) >= minDays);
+}
+
+export interface MonthlyProfit {
+  label: string;
+  profit: number;
+}
+
+export function profitOverTime(items: Item[]): MonthlyProfit[] {
+  const map = new Map<string, number>();
+  for (const item of items) {
+    if (item.status !== "sold" || !item.sale) continue;
+    const d = new Date(item.sale.soldAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    map.set(key, (map.get(key) ?? 0) + profit(item));
+  }
+  return [...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-6)
+    .map(([key, profitTotal]) => {
+      const [year, month] = key.split("-");
+      const label = new Date(Number(year), Number(month) - 1).toLocaleString(
+        "en-US",
+        { month: "short" }
+      );
+      return { label, profit: profitTotal };
+    });
+}
+
+// Fill in months with $0 so the chart doesn't look empty when sales are sparse.
+export function profitChartLast6Months(items: Item[]): MonthlyProfit[] {
+  const months: { key: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleString("en-US", { month: "short" }),
+    });
+  }
+
+  const profitMap = new Map<string, number>();
+  for (const item of items) {
+    if (item.status !== "sold" || !item.sale) continue;
+    const d = new Date(item.sale.soldAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    profitMap.set(key, (profitMap.get(key) ?? 0) + profit(item));
+  }
+
+  return months.map((m) => ({
+    label: m.label,
+    profit: profitMap.get(m.key) ?? 0,
+  }));
+}
+
 export function soldItemsByProfit(items: Item[]): Item[] {
   return items
     .filter((i) => i.status === "sold")
     .sort((a, b) => profit(b) - profit(a));
 }
 
-export function formatPlatforms(platforms: Platform[]): string {
-  return platforms.map((p) => PLATFORM_LABELS[p]).join(", ");
+export function formatListings(listings: Listing[]): string {
+  return listings.map((l) => getListingLabel(l)).join(", ");
 }
 
 export function formatCurrency(n: number): string {

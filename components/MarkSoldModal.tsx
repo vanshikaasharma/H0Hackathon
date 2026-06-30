@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import Modal from "./Modal";
 import { useStore } from "@/lib/store";
-import { Item, Platform, PLATFORM_LABELS } from "@/lib/types";
-
-const inputClass =
-  "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-100";
-const labelClass = "mb-1 block text-sm font-medium text-slate-700";
+import { getListingLabel, listingKey } from "@/lib/listing-utils";
+import { inputClass, labelClass } from "@/lib/ui-styles";
+import { Item } from "@/lib/types";
+import PlatformTag from "./PlatformTag";
 
 export default function MarkSoldModal({
   item,
@@ -17,48 +16,50 @@ export default function MarkSoldModal({
   onClose: () => void;
 }) {
   const { markSold } = useStore();
-  const [platformSold, setPlatformSold] = useState<Platform | "">("");
+  const [soldListingKey, setSoldListingKey] = useState("");
   const [salePrice, setSalePrice] = useState("");
 
   useEffect(() => {
     if (item) {
-      const firstActive = item.listings.find((l) => l.isActive)?.platform;
-      setPlatformSold(firstActive ?? item.listings[0]?.platform ?? "");
+      const firstActive = item.listings.find((l) => l.isActive);
+      const first = firstActive ?? item.listings[0];
+      setSoldListingKey(first ? listingKey(first) : "");
       setSalePrice(String(item.askingPrice));
     }
   }, [item]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!item || !platformSold) return;
-    markSold(item.id, platformSold, Number(salePrice) || 0);
+    if (!item || !soldListingKey) return;
+    markSold(item.id, soldListingKey, Number(salePrice) || 0);
     onClose();
   }
 
   const otherPlatforms =
-    item?.listings.filter((l) => l.platform !== platformSold && l.isActive) ??
-    [];
+    item?.listings.filter(
+      (l) => listingKey(l) !== soldListingKey && l.isActive
+    ) ?? [];
 
   return (
     <Modal open={!!item} onClose={onClose} title="Mark as Sold">
       {item && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <p className="text-sm text-slate-500">
-            <span className="font-medium text-slate-700">{item.title}</span> —
-            where did it sell?
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <p className="text-sm text-rackd-charcoal/60">
+            <span className="font-semibold text-rackd-charcoal">{item.title}</span>
+            {" "}— where did it sell?
           </p>
 
           <div>
             <label className={labelClass}>Sold on platform</label>
             <select
               className={inputClass}
-              value={platformSold}
-              onChange={(e) => setPlatformSold(e.target.value as Platform)}
+              value={soldListingKey}
+              onChange={(e) => setSoldListingKey(e.target.value)}
               required
             >
               {item.listings.map((l) => (
-                <option key={l.platform} value={l.platform}>
-                  {PLATFORM_LABELS[l.platform]}
+                <option key={listingKey(l)} value={listingKey(l)}>
+                  {getListingLabel(l)}
                 </option>
               ))}
             </select>
@@ -77,28 +78,32 @@ export default function MarkSoldModal({
           </div>
 
           {otherPlatforms.length > 0 && (
-            <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5 text-sm text-orange-700">
-              Heads up — you&apos;ll still be listed on{" "}
-              <span className="font-semibold">
-                {otherPlatforms
-                  .map((l) => PLATFORM_LABELS[l.platform])
-                  .join(", ")}
-              </span>
-              . Delist there to avoid double-selling.
+            <div className="rounded-2xl border border-rackd-mint-dark/40 bg-rackd-mint/25 p-4">
+              <p className="text-sm font-medium text-rackd-charcoal">
+                You&apos;ll still be listed on:
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {otherPlatforms.map((l) => (
+                  <PlatformTag key={listingKey(l)} listing={l} />
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-rackd-charcoal/55">
+                Delist manually on those platforms after confirming the sale.
+              </p>
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              className="rounded-2xl px-5 py-2.5 text-sm font-medium text-rackd-charcoal/70 hover:bg-rackd-charcoal/5"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+              className="rounded-2xl bg-rackd-charcoal px-5 py-2.5 text-sm font-medium text-white hover:bg-rackd-charcoal/90"
             >
               Confirm Sale
             </button>

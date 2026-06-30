@@ -1,8 +1,16 @@
-export type Platform = "depop" | "poshmark" | "vinted" | "ebay";
+/**
+ * TypeScript types for items, listings, and sales.
+ * These match the DB tables I plan to use in Aurora (items, listings, sales).
+ */
 
-export const PLATFORMS: Platform[] = ["depop", "poshmark", "vinted", "ebay"];
+export type KnownPlatform = "depop" | "poshmark" | "vinted" | "ebay";
 
-export const PLATFORM_LABELS: Record<Platform, string> = {
+/** @deprecated use KnownPlatform instead */
+export type Platform = KnownPlatform;
+
+export const PLATFORMS: KnownPlatform[] = ["depop", "poshmark", "vinted", "ebay"];
+
+export const PLATFORM_LABELS: Record<KnownPlatform, string> = {
   depop: "Depop",
   poshmark: "Poshmark",
   vinted: "Vinted",
@@ -11,20 +19,32 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
 
 export type ItemStatus = "active" | "sold";
 
-// Maps to the LISTINGS table (one item -> many listings)
+/** Form/API input before we assign id, isActive, etc. */
+export interface ItemListingInput {
+  platform: KnownPlatform | "custom";
+  customPlatformName?: string;
+  listingUrl?: string;
+}
+
+/** LISTINGS table row */
 export interface Listing {
-  platform: Platform;
+  platform: KnownPlatform | "custom";
+  customPlatformName?: string;
   isActive: boolean;
+  listingUrl?: string;
 }
 
-// Maps to the SALES table (one item -> one sale)
+/** SALES table row */
 export interface Sale {
-  platformSold: Platform;
+  /** Matches listingKey() — which listing row sold */
+  listingKey: string;
+  platformSold: KnownPlatform | "custom";
+  customPlatformSold?: string;
   salePrice: number;
-  soldAt: string; // ISO date
+  soldAt: string;
 }
 
-// Maps to the ITEMS table, with related listings/sale embedded for the UI
+/** ITEMS table row + embedded relations for the client store */
 export interface Item {
   id: string;
   title: string;
@@ -36,7 +56,7 @@ export interface Item {
   askingPrice: number;
   photoUrl: string;
   status: ItemStatus;
-  createdAt: string; // ISO date
+  createdAt: string;
   listings: Listing[];
   sale?: Sale;
 }
@@ -50,5 +70,5 @@ export interface NewItemInput {
   cost: number;
   askingPrice: number;
   photoUrl: string;
-  platforms: Platform[];
+  listings: ItemListingInput[];
 }

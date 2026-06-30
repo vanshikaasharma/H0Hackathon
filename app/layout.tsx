@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import TopNav from "@/components/TopNav";
+import PendingDelistBanner from "@/components/PendingDelistBanner";
 import { StoreProvider } from "@/lib/store";
+import { SearchProvider } from "@/lib/search-context";
+
+/**
+ * Root layout — StoreProvider holds inventory, SearchProvider holds nav search text.
+ */
 
 export const metadata: Metadata = {
-  title: "FlipHQ — Reseller Inventory Dashboard",
+  title: "Rackd — Reseller Inventory Dashboard",
   description:
-    "Manage clothing reseller inventory across Depop, Poshmark, Vinted & eBay. Track profit, avoid double-selling.",
+    "Inventory dashboard for clothing resellers on Depop, Poshmark, Vinted, and eBay.",
 };
 
 export default function RootLayout({
@@ -16,12 +22,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen bg-rackd-surface font-sans antialiased">
         <StoreProvider>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 min-w-0">{children}</main>
-          </div>
+          <SearchProvider>
+            <TopNav />
+            <PendingDelistBanner />
+            <main>{children}</main>
+          </SearchProvider>
         </StoreProvider>
       </body>
     </html>

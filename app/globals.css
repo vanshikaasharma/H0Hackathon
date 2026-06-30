@@ -2,18 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
 :root {
-  --background: #f8fafc;
+  --background: #fafaf8;
+  --charcoal: #36454f;
+  --mint: #b2e0d6;
 }
 
 html,
 body {
   background-color: var(--background);
-  color: #0f172a;
+  color: var(--charcoal);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #b2e0d6 transparent;
 }

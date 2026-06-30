@@ -1,101 +1,137 @@
 "use client";
 
+/**
+ * Inventory card in the grid.
+ * Delist warnings sit on the photo so every card stays the same height.
+ */
+import Link from "next/link";
 import { Item } from "@/lib/types";
-import { formatCurrency, platformsNeedingDelist } from "@/lib/compute";
+import { formatCurrency, listingsNeedingDelist } from "@/lib/compute";
+import { getSaleLabel, listingKey } from "@/lib/listing-utils";
 import PlatformTag from "./PlatformTag";
-import { AlertTriangle, Tag } from "lucide-react";
+import DelistWarning from "./DelistWarning";
+import { inventoryCardClass } from "@/lib/ui-styles";
+import { Pencil, Tag } from "lucide-react";
 
 interface ItemCardProps {
   item: Item;
   onMarkSold: (item: Item) => void;
+  onEdit: (item: Item) => void;
 }
 
-export default function ItemCard({ item, onMarkSold }: ItemCardProps) {
-  const delistPlatforms = platformsNeedingDelist(item);
+export default function ItemCard({ item, onMarkSold, onEdit }: ItemCardProps) {
+  const pendingDelists = listingsNeedingDelist(item);
   const isSold = item.status === "sold";
+  const needsDelist = pendingDelists.length > 0;
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card transition-shadow hover:shadow-card-hover">
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={item.photoUrl}
-          alt={item.title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-        <span
-          className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${
-            isSold
-              ? "bg-slate-800/90 text-white"
-              : "bg-emerald-500/95 text-white"
-          }`}
-        >
-          {isSold ? "Sold" : "Active"}
-        </span>
+    <div className={`group relative flex flex-col transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover ${inventoryCardClass}`}>
+      <button
+        type="button"
+        onClick={() => onEdit(item)}
+        aria-label="Edit item"
+        className="absolute right-2 top-2 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-rackd-charcoal shadow-soft opacity-100 transition-opacity hover:bg-rackd-mint sm:opacity-0 sm:group-hover:opacity-100"
+      >
+        <Pencil size={13} />
+      </button>
+
+      <div className="relative aspect-square overflow-hidden bg-rackd-charcoal/5">
+        <Link href={`/items/${item.id}`} className="block h-full w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.photoUrl}
+            alt={item.title}
+            className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${
+              isSold ? "opacity-[stage the changes0.65]" : ""
+            }`}
+          />
+        </Link>
+
+        {isSold && !needsDelist && (
+          <div
+            className="pointer-events-none absolute inset-0 bg-white/10"
+            aria-hidden
+          />
+        )}
+
+        {needsDelist && (
+          <div className="absolute inset-0 z-20 flex flex-col justify-end bg-gradient-to-t from-rackd-mint/65 via-rackd-mint/20 to-transparent p-2">
+            <DelistWarning
+              itemId={item.id}
+              listings={pendingDelists}
+              overlay
+            />
+          </div>
+        )}
+
+        {!isSold && (
+          <div className="absolute inset-x-0 bottom-0 z-10 hidden justify-end bg-gradient-to-t from-rackd-charcoal/50 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100 sm:flex">
+            <button
+              type="button"
+              onClick={() => onMarkSold(item)}
+              className="flex items-center gap-1 rounded-pill bg-white px-2.5 py-1 text-xs font-semibold text-rackd-charcoal shadow-soft"
+            >
+              <Tag size={12} />
+              Sold
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold leading-tight text-slate-900 line-clamp-2">
-              {item.title}
-            </h3>
-            <span className="shrink-0 text-lg font-bold text-slate-900">
-              {formatCurrency(item.askingPrice)}
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-slate-500">
+      <div className="flex flex-col gap-2 p-3.5">
+        <Link href={`/items/${item.id}`} className="min-w-0">
+          <h3 className="truncate text-sm font-semibold text-rackd-charcoal">
+            {item.title}
+          </h3>
+          <p className="mt-0.5 truncate text-xs text-rackd-charcoal/55">
             {item.brand} · Size {item.size}
           </p>
+        </Link>
+
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-base font-bold text-rackd-charcoal">
+            {formatCurrency(item.askingPrice)}
+          </span>
+          <span
+            className={`shrink-0 rounded-pill px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+              isSold
+                ? "bg-rackd-charcoal/10 text-rackd-charcoal/60"
+                : "bg-rackd-mint text-rackd-charcoal"
+            }`}
+          >
+            {isSold ? "Sold" : "Active"}
+          </span>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {item.listings.map((l) => (
             <PlatformTag
-              key={l.platform}
-              platform={l.platform}
+              key={listingKey(l)}
+              listing={l}
               muted={!l.isActive}
             />
           ))}
         </div>
 
-        {isSold && item.sale && (
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-            Sold on{" "}
-            <span className="font-medium capitalize">
-              {item.sale.platformSold}
-            </span>{" "}
-            for {formatCurrency(item.sale.salePrice)}
-          </div>
-        )}
-
-        {delistPlatforms.length > 0 && (
-          <div className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-700">
-            <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-            <span>
-              <span className="font-semibold">Delist from:</span>{" "}
-              {delistPlatforms
-                .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-                .join(", ")}
+        {isSold && item.sale && !needsDelist && (
+          <p className="truncate text-xs text-rackd-charcoal/55">
+            Sold on {getSaleLabel(item.sale)} ·{" "}
+            <span className="font-medium text-rackd-charcoal">
+              +{formatCurrency(item.sale.salePrice - item.cost)}
             </span>
-          </div>
+          </p>
         )}
 
-        <div className="mt-auto pt-1">
-          {!isSold ? (
-            <button
-              onClick={() => onMarkSold(item)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700"
-            >
-              <Tag size={15} />
-              Mark as Sold
-            </button>
-          ) : (
-            <div className="rounded-lg bg-emerald-50 px-3 py-2 text-center text-sm font-medium text-emerald-700">
-              Profit {formatCurrency(item.sale!.salePrice - item.cost)}
-            </div>
-          )}
-        </div>
+        {!isSold && (
+          <button
+            type="button"
+            onClick={() => onMarkSold(item)}
+            className="mt-0.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-rackd-charcoal/10 py-1.5 text-xs font-medium text-rackd-charcoal/70 transition-colors hover:border-rackd-mint-dark hover:bg-rackd-mint/30 hover:text-rackd-charcoal sm:hidden"
+          >
+            <Tag size={13} />
+            Mark as Sold
+          </button>
+        )}
       </div>
     </div>
   );
