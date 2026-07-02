@@ -6,21 +6,31 @@ function daysAgo(n: number): string {
   return d.toISOString();
 }
 
-// Seed data so every screen looks full during the demo.
+/**
+ * Demo inventory — each item shows a different part of the app:
+ * - itm_001: normal active item, 3 platforms
+ * - itm_002: recently listed active item
+ * - itm_003: sold on Vinted, still live on Depop + Poshmark (delist warning)
+ * - itm_004: sold + fully delisted (no warning)
+ * - itm_005: stale inventory (65 days, shows in analytics)
+ * - itm_006: custom platform (Grailed)
+ * - itm_007: active shoes, moderate age
+ * - itm_008: sold on Poshmark, still live on eBay (delist warning)
+ */
 export const SEED_ITEMS: Item[] = [
   {
     id: "itm_001",
     title: "Vintage Carhartt Detroit Jacket",
     brand: "Carhartt",
     size: "L",
-    category: "Outerwear",
+    category: "Jacket",
     condition: "Good",
     cost: 28,
     askingPrice: 145,
     photoUrl:
       "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600&q=80",
     status: "active",
-    createdAt: daysAgo(72),
+    createdAt: daysAgo(12),
     listings: [
       {
         platform: "depop",
@@ -44,7 +54,7 @@ export const SEED_ITEMS: Item[] = [
     title: "The North Face Nuptse Puffer",
     brand: "The North Face",
     size: "M",
-    category: "Outerwear",
+    category: "Jacket",
     condition: "Like New",
     cost: 55,
     askingPrice: 180,
@@ -70,7 +80,7 @@ export const SEED_ITEMS: Item[] = [
     title: "Levi's 501 Original Jeans",
     brand: "Levi's",
     size: "32x32",
-    category: "Bottoms",
+    category: "Pants",
     condition: "Good",
     cost: 12,
     askingPrice: 60,
@@ -107,7 +117,7 @@ export const SEED_ITEMS: Item[] = [
     title: "Nike Tech Fleece Hoodie",
     brand: "Nike",
     size: "S",
-    category: "Tops",
+    category: "Top",
     condition: "Like New",
     cost: 30,
     askingPrice: 85,
@@ -131,7 +141,7 @@ export const SEED_ITEMS: Item[] = [
     title: "Patagonia Synchilla Fleece",
     brand: "Patagonia",
     size: "M",
-    category: "Outerwear",
+    category: "Jacket",
     condition: "Good",
     cost: 22,
     askingPrice: 95,
@@ -157,7 +167,7 @@ export const SEED_ITEMS: Item[] = [
     title: "Lululemon Define Jacket",
     brand: "Lululemon",
     size: "6",
-    category: "Activewear",
+    category: "Jacket",
     condition: "Like New",
     cost: 35,
     askingPrice: 78,
@@ -182,7 +192,7 @@ export const SEED_ITEMS: Item[] = [
     title: "Adidas Sambas OG",
     brand: "Adidas",
     size: "9",
-    category: "Footwear",
+    category: "Shoes",
     condition: "Good",
     cost: 40,
     askingPrice: 110,
@@ -200,7 +210,7 @@ export const SEED_ITEMS: Item[] = [
     title: "Zara Wool Blend Overcoat",
     brand: "Zara",
     size: "M",
-    category: "Outerwear",
+    category: "Jacket",
     condition: "New with Tags",
     cost: 25,
     askingPrice: 70,
@@ -211,7 +221,7 @@ export const SEED_ITEMS: Item[] = [
     listings: [
       {
         platform: "poshmark",
-        isActive: true,
+        isActive: false,
         listingUrl: "https://poshmark.com/listing/zara-overcoat",
       },
       {

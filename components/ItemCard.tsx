@@ -42,7 +42,7 @@ export default function ItemCard({ item, onMarkSold, onEdit }: ItemCardProps) {
             src={item.photoUrl}
             alt={item.title}
             className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${
-              isSold ? "opacity-[stage the changes0.65]" : ""
+              isSold ? "opacity-[0.65]" : ""
             }`}
           />
         </Link>
