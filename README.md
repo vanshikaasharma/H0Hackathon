@@ -2,6 +2,8 @@
 
 Inventory dashboard for clothing resellers. I built this as a solo project after a hackathon — the idea is to track what you have listed across Depop, Poshmark, Vinted, eBay, and any other platform, log sales, and get reminded to delist on the other sites when something sells.
 
+**Live demo:** [https://rackd-seven.vercel.app](https://rackd-seven.vercel.app)
+
 Right now the frontend is done. Data lives in memory (refresh resets to demo items). Next step is wiring **Amazon Aurora PostgreSQL** through API routes.
 
 ## What it does
@@ -17,7 +19,7 @@ Right now the frontend is done. Data lives in memory (refresh resets to demo ite
 - **Frontend:** Next.js 14, TypeScript, Tailwind CSS
 - **State (current):** React Context + in-memory store (`lib/store.tsx`)
 - **Database (planned):** Amazon Aurora PostgreSQL
-- **Hosting (planned):** Vercel
+- **Hosting:** [Vercel](https://rackd-seven.vercel.app)
 
 ## Run locally
 
@@ -62,7 +64,6 @@ public/logo.png   app logo
 
 1. Aurora PostgreSQL — `items`, `listings`, `sales` tables
 2. API routes + refactor `lib/store.tsx` to fetch from the DB
-3. Deploy to Vercel with env vars
 
 ## Demo data
 
